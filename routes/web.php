@@ -8,6 +8,9 @@ use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\DonationTypeController;
+
 // --------------------------------------------------
 // Home route
 // --------------------------------------------------
@@ -67,6 +70,20 @@ Route::middleware(['auth'])->group(function () {
         return view('settings.appearance'); // Blade view contains <livewire:settings.appearance />
     })->name('settings.appearance');
 });
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [DonationController::class,'index'])->name('dashboard');
+    Route::resource('donations', DonationController::class)->except(['create','show','edit']);
+    Route::resource('donation-types', DonationTypeController::class)->parameters(['donation-types'=>'donationType'])->except(['create','show','edit']);
+});
+
+// map root to dashboard and name it "home"
+Route::get('/', [DonationController::class, 'index'])->name('home');
+
+// if you already have a dashboard route named 'dashboard', add an alias:
+Route::get('/dashboard', [DonationController::class, 'index'])->name('dashboard');
+// alias so both names work
+Route::get('/')->name('home')->uses([DonationController::class, 'index']);
 
 // --------------------------------------------------
 // Auth routes
