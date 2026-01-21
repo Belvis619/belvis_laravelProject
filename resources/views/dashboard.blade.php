@@ -54,13 +54,13 @@
         </div>
 
         <!-- Student Management Section -->
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800">
+        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-gray-300 dark:border-neutral-700 dark:bg-neutral-800">
             <div class="flex h-full flex-col p-6">
                 <!-- Add New Student Form -->
                 <div class="mb-6 rounded-lg border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-700 dark:bg-neutral-900/50">
                     <h2 class="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Add New Student</h2>
 
-                    <form action="{{ route('students.store') }}" method="POST" class="grid gap-4 md:grid-cols-2">
+                    <form action="{{ route('students.store') }}" method="POST" enctype="multipart/form-data" class="grid gap-4 md:grid-cols-2">
                         @csrf
 
                         <div>
@@ -111,10 +111,53 @@
                             @enderror
                         </div>
 
+                        <div class="md:col-span-1">
+                            <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Photo</label>
+                            <input type="file" name="photo" accept="image/jpeg,image/jpg,image/png" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100">
+                            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">JPG/PNG only, max 2MB</p>
+                            @error('photo')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="md:col-span-2 flex justify-end">
                             <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
                                 Add Student
                             </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Search & Filter Section -->
+                <div class="mb-6 rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-900/50">
+                    <form method="GET" action="{{ route('dashboard') }}" class="flex flex-wrap gap-4 items-end">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Search</label>
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or email" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100">
+                        </div>
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Filter by Course</label>
+                            <select name="course_filter" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100">
+                                <option value="">All Courses</option>
+                                @foreach($courses as $course)
+                                    <option value="{{ $course->id }}" {{ request('course_filter') == $course->id ? 'selected' : '' }}>
+                                        {{ $course->course_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+                                Filter
+                            </button>
+                            @if(request('search') || request('course_filter'))
+                                <a href="{{ route('dashboard') }}" class="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700">
+                                    Clear
+                                </a>
+                            @endif
+                            <a href="{{ route('students.export-pdf') }}?{{ http_build_query(request()->only(['search', 'course_filter'])) }}" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700">
+                                Export PDF
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -127,6 +170,7 @@
                             <thead>
                                 <tr class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900/50">
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-300">#</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-300">Avatar</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-300">Name</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-300">Email</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-neutral-700 dark:text-neutral-300">Phone</th>
@@ -139,6 +183,15 @@
                                 @forelse($students as $student)
                                     <tr class="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                                         <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-3">
+                                            @if($student->photo)
+                                                <img src="{{ asset('storage/' . $student->photo) }}" alt="{{ $student->name }}" class="h-10 w-10 rounded-full object-cover">
+                                            @else
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
+                                                    {{ $student->initials() }}
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100">{{ $student->name }}</td>
                                         <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">{{ $student->email }}</td>
                                         <td class="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">{{ $student->phone }}</td>
@@ -147,7 +200,7 @@
                                             {{ $student->course ? $student->course->course_name : 'N/A' }}
                                         </td>
                                         <td class="px-4 py-3 text-sm">
-                                            <button onclick="editStudent({{ $student->id }}, '{{ $student->name }}', '{{ $student->email }}', '{{ $student->phone }}', '{{ $student->address }}', {{ $student->course_id }})"
+                                            <button onclick="editStudent({{ $student->id }}, '{{ $student->name }}', '{{ $student->email }}', '{{ $student->phone }}', '{{ $student->address }}', {{ $student->course_id }}, '{{ $student->photo }}')"
                                                     class="text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                                                 Edit
                                             </button>
@@ -161,7 +214,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                                        <td colspan="8" class="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
                                             No students found. Add your first student above!
                                         </td>
                                     </tr>
@@ -179,7 +232,7 @@
         <div class="w-full max-w-2xl rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-700 dark:bg-neutral-800">
             <h2 class="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Edit Student</h2>
 
-            <form id="editStudentForm" method="POST">
+            <form id="editStudentForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -218,6 +271,16 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">Photo</label>
+                        <input type="file" id="edit_photo" name="photo" accept="image/jpeg,image/jpg,image/png" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100">
+                        <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">JPG/PNG only, max 2MB</p>
+                        <div id="current_photo_preview" class="mt-2 hidden">
+                            <p class="text-xs text-neutral-600 dark:text-neutral-400 mb-1">Current photo:</p>
+                            <img id="current_photo_img" src="" alt="Current photo" class="h-16 w-16 rounded-full object-cover">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3">
@@ -235,7 +298,7 @@
     </div>
 
     <script>
-        function editStudent(id, name, email, phone, address, courseId) {
+        function editStudent(id, name, email, phone, address, courseId, photo) {
             document.getElementById('editStudentModal').classList.remove('hidden');
             document.getElementById('editStudentModal').classList.add('flex');
             document.getElementById('editStudentForm').action = `/students/${id}`;
@@ -244,6 +307,16 @@
             document.getElementById('edit_phone').value = phone;
             document.getElementById('edit_address').value = address;
             document.getElementById('edit_course_id').value = courseId || '';
+            
+            // Handle photo preview
+            const photoPreview = document.getElementById('current_photo_preview');
+            const photoImg = document.getElementById('current_photo_img');
+            if (photo) {
+                photoImg.src = '{{ asset("storage") }}/' + photo;
+                photoPreview.classList.remove('hidden');
+            } else {
+                photoPreview.classList.add('hidden');
+            }
         }
 
         function closeEditStudentModal() {

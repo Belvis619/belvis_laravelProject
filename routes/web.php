@@ -29,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/students', [StudentController::class, 'store'])->name('students.store');
     Route::put('/students/{student}', [StudentController::class, 'update'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+    Route::get('/students/export-pdf', [StudentController::class, 'exportPdf'])->name('students.export-pdf');
 });
 
 // --------------------------------------------------
@@ -39,6 +40,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
     Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+});
+
+// --------------------------------------------------
+// Trash Management routes
+// --------------------------------------------------
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
+    Route::post('/trash/students/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreStudent'])->name('trash.students.restore');
+    Route::delete('/trash/students/{id}', [App\Http\Controllers\TrashController::class, 'forceDeleteStudent'])->name('trash.students.forceDelete');
+    Route::post('/trash/courses/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreCourse'])->name('trash.courses.restore');
+    Route::delete('/trash/courses/{id}', [App\Http\Controllers\TrashController::class, 'forceDeleteCourse'])->name('trash.courses.forceDelete');
 });
 
 // --------------------------------------------------

@@ -50,7 +50,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Delete a course from database
+     * Delete a course from database (soft delete)
      * Removes course by ID
      */
     public function destroy(Course $course)
