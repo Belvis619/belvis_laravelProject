@@ -12,18 +12,11 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\DonationTypeController;
 
 // --------------------------------------------------
-// Home route
+// Dashboard route (old student dashboard - kept for compatibility)
 // --------------------------------------------------
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
-
-// --------------------------------------------------
-// Dashboard route
-// --------------------------------------------------
-Route::get('/dashboard', [StudentController::class, 'index'])
+Route::get('/students-dashboard', [StudentController::class, 'index'])
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('students.dashboard');
 
 // --------------------------------------------------
 // Student CRUD routes
@@ -72,18 +65,18 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/', [DonationController::class,'index'])->name('dashboard');
+    // Donations routes
+    Route::get('/', [DonationController::class, 'index'])->name('home');
+    Route::get('/dashboard', [DonationController::class, 'index'])->name('dashboard');
     Route::resource('donations', DonationController::class)->except(['create','show','edit']);
+    Route::get('/donations/trash', [DonationController::class, 'trash'])->name('donations.trash');
+    Route::put('/donations/{id}/restore', [DonationController::class, 'restore'])->name('donations.restore');
+    Route::delete('/donations/{id}/force-delete', [DonationController::class, 'forceDelete'])->name('donations.force-delete');
+    Route::get('/donations/export/pdf', [DonationController::class, 'exportPdf'])->name('donations.export');
+    
+    // Donation Types routes
     Route::resource('donation-types', DonationTypeController::class)->parameters(['donation-types'=>'donationType'])->except(['create','show','edit']);
 });
-
-// map root to dashboard and name it "home"
-Route::get('/', [DonationController::class, 'index'])->name('home');
-
-// if you already have a dashboard route named 'dashboard', add an alias:
-Route::get('/dashboard', [DonationController::class, 'index'])->name('dashboard');
-// alias so both names work
-Route::get('/')->name('home')->uses([DonationController::class, 'index']);
 
 // --------------------------------------------------
 // Auth routes

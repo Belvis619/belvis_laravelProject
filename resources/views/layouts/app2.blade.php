@@ -21,6 +21,10 @@
         <flux:navlist.item icon="tag" :href="route('donation-types.index')" :current="request()->routeIs('donation-types.*')" wire:navigate>
           {{ __('Donation Types') }}
         </flux:navlist.item>
+
+        <flux:navlist.item icon="trash" :href="route('donations.trash')" :current="request()->routeIs('donations.trash')" wire:navigate>
+          {{ __('Trash') }}
+        </flux:navlist.item>
       </flux:navlist.group>
     </flux:navlist>
 
