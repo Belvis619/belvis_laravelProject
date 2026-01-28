@@ -21,19 +21,19 @@ class Donation extends Model
 
     public function type(): BelongsTo
     {
-        return $this->belongsTo(DonationType::class);
+        return $this->belongsTo(DonationType::class, 'donation_type_id');
     }
 
     /**
      * Get the donor's initials
      */
-    public function initials(): string
+    public function initials()
     {
-        return Str::of($this->donor_name)
-            ->explode(' ')
-            ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
-            ->implode('')
-            ->upper();
+        return Str::upper(
+            collect(explode(' ', $this->donor_name))
+                ->take(2)
+                ->map(fn ($word) => Str::substr($word, 0, 1))
+                ->implode('')
+        );
     }
 }

@@ -224,8 +224,12 @@
                             <label class="block text-sm font-medium mb-1">Photo (JPG/PNG, max 2MB)</label>
                             <input type="file" name="photo" accept="image/jpeg,image/jpg,image/png" class="w-full border rounded p-2 dark:bg-gray-700 dark:text-white">
                             <p class="text-xs text-gray-500 mt-1">Leave blank to keep current photo</p>
-                            <div x-show="form.photo" class="mt-2">
-                                <img :src="form.photo ? '/storage/' + form.photo : ''" alt="Current photo" class="w-16 h-16 rounded-full object-cover mt-2" onerror="this.style.display='none'">
+                            <div class="mt-2" x-show="form.photo">
+                                <img
+                                    :src="'/storage/' + form.photo"
+                                    alt="Current photo"
+                                    class="w-16 h-16 rounded-full object-cover"
+                                >
                             </div>
                         </div>
                     </div>
